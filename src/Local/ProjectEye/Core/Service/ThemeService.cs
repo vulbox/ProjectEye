@@ -157,7 +157,7 @@ namespace ProjectEye.Core.Service
             var data = new UIDesignModel();
             data.ContainerAttr = new ContainerModel()
             {
-                Background = Brushes.White,
+                Background = Project1UIColor.Get("#038143"),
                 Opacity = .98
             };
 
@@ -175,7 +175,7 @@ namespace ProjectEye.Core.Service
             tipText.Type = Project1.UI.Controls.Enums.DesignItemType.Text;
             tipText.Text = "您已持续用眼{t}分钟，休息一会吧！请将注意力集中在至少6米远的地方20秒！";
             tipText.Opacity = 1;
-            tipText.TextColor = Project1UIColor.Get("#45435b");
+            tipText.TextColor = Project1UIColor.Get("#000000");
             tipText.Width = 400;
             tipText.Height = 50;
             tipText.X = screenSize.Width / 2 - tipText.Width / 2;
@@ -211,7 +211,7 @@ namespace ProjectEye.Core.Service
             countDownText.FontSize = 50;
             countDownText.IsTextBold = true;
             countDownText.Type = Project1.UI.Controls.Enums.DesignItemType.Text;
-            countDownText.TextColor = Brushes.Black;
+            countDownText.TextColor = Project1UIColor.Get("#000000");
             countDownText.Opacity = 1;
             countDownText.Width = 100;
             countDownText.Height = 60;
