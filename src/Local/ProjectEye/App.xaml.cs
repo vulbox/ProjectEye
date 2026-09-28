@@ -59,6 +59,8 @@ namespace ProjectEye
                 serviceCollection.Add<TrayService>();
                 //休息
                 serviceCollection.Add<RestService>();
+                //全局热键
+                serviceCollection.Add<HotkeyService>();
                 //声音
                 serviceCollection.Add<SoundService>();
                 //快捷键

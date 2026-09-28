@@ -44,6 +44,14 @@ namespace ProjectEye.Core.Service
         public void Init()
         {
         }
+
+        /// <summary>
+        /// 指示是否正在休息
+        /// </summary>
+        public bool IsRunning
+        {
+            get { return timer.IsEnabled; }
+        }
         /// <summary>
         /// 开始休息
         /// </summary>
@@ -52,6 +60,17 @@ namespace ProjectEye.Core.Service
             timed = config.options.General.RestTime;
             timer.Start();
             RestStart?.Invoke(this, timed);
+        }
+        /// <summary>
+        /// 中断休息（用户主动退出休息时调用）
+        /// </summary>
+        public void Stop()
+        {
+            if (timer.IsEnabled)
+            {
+                timer.Stop();
+                timed = config.options.General.RestTime;
+            }
         }
         /// <summary>
         /// 休息结束

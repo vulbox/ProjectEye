@@ -65,6 +65,7 @@
 
     <sys:String x:Key="Lang_Hotkeys">Hotkeys</sys:String>
     <sys:String x:Key="Lang_Pleasepressakey">Please press a key</sys:String>
+    <sys:String x:Key="Lang_Startthebreakanytime">Start the break anytime (global hotkey)</sys:String>
 
 
     <sys:String x:Key="Lang_Behaviors">Behaviors</sys:String>

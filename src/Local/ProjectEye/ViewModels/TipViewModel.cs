@@ -447,6 +447,8 @@ namespace ProjectEye.ViewModels
         private void busyCommand_action(object obj)
         {
             main.StopBusyListener();
+            //中断休息倒计时，避免计时器仍在运行导致全局热键失效
+            reset.Stop();
             main.ReStart();
             WindowManager.Hide("TipWindow");
             if (config.options.General.Data)
@@ -481,6 +483,14 @@ namespace ProjectEye.ViewModels
         /// </summary>
         private void HandleAutoAction()
         {
+            //全局热键强制休息
+            if (main.IsForceReset)
+            {
+                //清除标记，避免多显示器窗口重复触发
+                main.ClearForceReset();
+                resetCommand_action(null);
+                return;
+            }
             //询问
             if (!config.options.Style.IsTipAsk)
             {

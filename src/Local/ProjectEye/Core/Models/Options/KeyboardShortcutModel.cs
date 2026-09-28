@@ -13,6 +13,10 @@ namespace ProjectEye.Core.Models.Options
         /// 不休息快捷键
         /// </summary>
         public string NoReset { get; set; } = "";
+        /// <summary>
+        /// 立即休息全局热键
+        /// </summary>
+        public string ResetNow { get; set; } = "";
 
     }
 }

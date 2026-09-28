@@ -502,19 +502,28 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="40"/>
                             <RowDefinition Height="40"/>
+                            <RowDefinition Height="40"/>
                         </Grid.RowDefinitions>
                         <!--进入休息-->
                         <TextBlock Grid.Column="0"
                                    Margin="0,0,10,0" VerticalAlignment="Center" Text="{DynamicResource Lang_Startthebreak}"></TextBlock>
                         <ui:Project1UIKeyboardInput Grid.Column="1" Width="auto" KeyText="{Binding Model.Data.KeyboardShortcuts.Reset,Mode=TwoWay}" Placeholder="{DynamicResource Lang_Pleasepressakey}"/>
                         <!--跳过休息-->
-                        <TextBlock 
+                        <TextBlock
                             Grid.Row="1"
                             Grid.Column="0"
                                    Margin="0,0,10,0" VerticalAlignment="Center" Text="{DynamicResource Lang_Skipthebreak}"></TextBlock>
-                        <ui:Project1UIKeyboardInput 
+                        <ui:Project1UIKeyboardInput
                             Grid.Row="1"
                             Grid.Column="1" Width="auto" KeyText="{Binding Model.Data.KeyboardShortcuts.NoReset,Mode=TwoWay}" Placeholder="{DynamicResource Lang_Pleasepressakey}"/>
+                        <!--立即休息（全局热键）-->
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="0"
+                                   Margin="0,0,10,0" VerticalAlignment="Center" Text="{DynamicResource Lang_Startthebreakanytime}"></TextBlock>
+                        <ui:Project1UIKeyboardInput
+                            Grid.Row="2"
+                            Grid.Column="1" Width="auto" KeyText="{Binding Model.Data.KeyboardShortcuts.ResetNow,Mode=TwoWay}" Placeholder="{DynamicResource Lang_Pleasepressakey}"/>
                     </Grid>
 
                 </StackPanel>

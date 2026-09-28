@@ -466,6 +466,39 @@ namespace ProjectEye.Core.Service
         }
         #endregion
 
+        #region 立即进入休息
+        /// <summary>
+        /// 强制休息标记（全局热键触发）
+        /// </summary>
+        private bool isForceReset;
+        /// <summary>
+        /// 立即进入休息，无视询问等设置
+        /// </summary>
+        public void ResetNow()
+        {
+            //设置强制休息标记
+            isForceReset = true;
+            //结束繁忙超时监听
+            StopBusyListener();
+            //显示提示窗口并直接进入休息
+            WindowManager.Show("TipWindow");
+        }
+        /// <summary>
+        /// 指示是否为强制休息（全局热键触发）
+        /// </summary>
+        public bool IsForceReset
+        {
+            get { return isForceReset; }
+        }
+        /// <summary>
+        /// 清除强制休息标记
+        /// </summary>
+        public void ClearForceReset()
+        {
+            isForceReset = false;
+        }
+        #endregion
+
         #region 显示休息提示窗口
         /// <summary>
         /// 显示休息提示窗口

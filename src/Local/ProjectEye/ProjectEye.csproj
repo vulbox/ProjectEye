@@ -114,6 +114,7 @@
     <Compile Include="Core\Service\BackgroundWorkerService.cs" />
     <Compile Include="Core\Service\CacheService.cs" />
     <Compile Include="Core\Service\ConfigService.cs" />
+    <Compile Include="Core\Service\HotkeyService.cs" />
     <Compile Include="Core\Service\IService.cs" />
     <Compile Include="Core\Service\KeyboardShortcutsService.cs" />
     <Compile Include="Core\Service\MainService.cs" />

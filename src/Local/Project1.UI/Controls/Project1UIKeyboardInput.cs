@@ -52,16 +52,37 @@ namespace Project1.UI.Controls
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            string key;
-            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key != Key.LeftCtrl)
+            //Alt组合键时需要使用SystemKey获取真实按键
+            var key = e.Key == Key.System ? e.SystemKey : e.Key;
+            //按下纯修饰键时不录入
+            if (key == Key.LeftCtrl || key == Key.RightCtrl ||
+                key == Key.LeftAlt || key == Key.RightAlt ||
+                key == Key.LeftShift || key == Key.RightShift ||
+                key == Key.LWin || key == Key.RWin)
             {
-                key = "CTRL + " + e.Key.ToString();
+                return;
             }
-            else
+            //按规范格式录入（CTRL + ALT + SHIFT + WIN + Key）
+            var parts = new List<string>();
+            var modifiers = e.KeyboardDevice.Modifiers;
+            if ((modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
-                key = e.Key.ToString();
+                parts.Add("CTRL");
             }
-            KeyText = key;
+            if ((modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
+            {
+                parts.Add("ALT");
+            }
+            if ((modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                parts.Add("SHIFT");
+            }
+            if ((modifiers & ModifierKeys.Windows) == ModifierKeys.Windows)
+            {
+                parts.Add("WIN");
+            }
+            parts.Add(key.ToString());
+            KeyText = string.Join(" + ", parts);
         }
 
     }
