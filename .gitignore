@@ -337,3 +337,8 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+# Local work log (not for repository)
+/WORKLOG.md
+
+# Local runtime data (statistics database)
+/Data/
