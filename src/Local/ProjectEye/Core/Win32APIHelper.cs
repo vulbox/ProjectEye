@@ -16,6 +16,40 @@ namespace ProjectEye.Core
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetCursorPos(out Point lpPoint);
 
+        #region 用户输入
+        /// <summary>
+        /// 最后一次输入信息结构
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct LASTINPUTINFO
+        {
+            public uint cbSize;
+            public uint dwTime;
+        }
+        /// <summary>
+        /// 获取最后一次键鼠输入事件的时间戳
+        /// </summary>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+        /// <summary>
+        /// 获取用户键鼠空闲时长（距离最后一次键盘或鼠标输入的时间）
+        /// </summary>
+        /// <returns></returns>
+        public static TimeSpan GetIdleTime()
+        {
+            var info = new LASTINPUTINFO();
+            info.cbSize = (uint)Marshal.SizeOf(info);
+            if (GetLastInputInfo(ref info))
+            {
+                //tick 为无符号毫秒数，约 49.7 天回绕一次，用有符号差值规避回绕问题
+                int idle = unchecked(Environment.TickCount - (int)info.dwTime);
+                return TimeSpan.FromMilliseconds(idle < 0 ? 0 : idle);
+            }
+            return TimeSpan.Zero;
+        }
+        #endregion
+
         #region 窗口类
         /// <summary>
         /// 获取窗口标题

@@ -19,13 +19,22 @@ namespace ProjectEye.Core.Service
         private DispatcherTimer work_timer;
         System.Diagnostics.Stopwatch workTimerStopwatch;
         /// <summary>
-        /// 离开检测计时器
+        /// 空闲检测计时器，用于检测用户离开和回来
         /// </summary>
-        private DispatcherTimer leave_timer;
+        private DispatcherTimer idle_timer;
         /// <summary>
-        /// 回来检测计时器
+        /// 用户离开判定阈值（键鼠无输入时长）
         /// </summary>
-        private DispatcherTimer back_timer;
+#if DEBUG
+        //调试模式下缩短阈值便于调试
+        private readonly TimeSpan leaveThreshold = new TimeSpan(0, 0, 15);
+#else
+        private readonly TimeSpan leaveThreshold = new TimeSpan(0, 3, 0);
+#endif
+        /// <summary>
+        /// 指示用户是否处于离开状态
+        /// </summary>
+        private bool isUserAway;
         /// <summary>
         /// 繁忙检测，用于检测用户在休息提示界面是否超时不操作
         /// </summary>
@@ -129,14 +138,10 @@ namespace ProjectEye.Core.Service
             work_timer.Tick += new EventHandler(timer_Tick);
             work_timer.Interval = new TimeSpan(0, config.options.General.WarnTime, 0);
             workTimerStopwatch = new Stopwatch();
-            //初始化离开检测计时器
-            leave_timer = new DispatcherTimer();
-            leave_timer.Tick += new EventHandler(leave_timer_Tick);
-            leave_timer.Interval = new TimeSpan(0, 5, 0);
-            //初始化回来检测计时器
-            back_timer = new DispatcherTimer();
-            back_timer.Tick += new EventHandler(back_timer_Tick);
-            back_timer.Interval = new TimeSpan(0, 1, 0);
+            //初始化空闲检测计时器
+            idle_timer = new DispatcherTimer();
+            idle_timer.Tick += new EventHandler(idle_timer_Tick);
+            idle_timer.Interval = new TimeSpan(0, 1, 0);
             //初始化繁忙计时器
             busy_timer = new DispatcherTimer();
             busy_timer.Tick += new EventHandler(busy_timer_Tick);
@@ -152,17 +157,12 @@ namespace ProjectEye.Core.Service
 #if DEBUG
             //30秒提示休息
             work_timer.Interval = new TimeSpan(0, 0, 30);
-            //20秒表示离开
-            leave_timer.Interval = new TimeSpan(0, 0, 20);
-            //每10秒检测回来
-            back_timer.Interval = new TimeSpan(0, 0, 10);
+            //每5秒检测一次键鼠空闲
+            idle_timer.Interval = new TimeSpan(0, 0, 5);
             useeye_timer.Interval = new TimeSpan(0, 1, 0);
 #endif
 
             CreateTipWindows();
-
-            //记录鼠标坐标
-            SaveCursorPos();
 
             UpdateDateTimer();
 
@@ -241,25 +241,24 @@ namespace ProjectEye.Core.Service
            
         }
 
-        private void back_timer_Tick(object sender, EventArgs e)
+        private void idle_timer_Tick(object sender, EventArgs e)
         {
-            if (IsCursorPosChanged())
+            var idleTime = Win32APIHelper.GetIdleTime();
+            if (!isUserAway)
             {
+                if (idleTime >= leaveThreshold)
+                {
+                    //键鼠无输入超过阈值，用户离开了电脑
+                    OnLeave();
+                }
+            }
+            else if (idleTime < idle_timer.Interval)
+            {
+                //自上次检测以来有键鼠输入，用户回来了
                 Debug.WriteLine("用户回来了");
-                back_timer.Stop();
+                isUserAway = false;
                 DoStart(false);
             }
-            SaveCursorPos();
-        }
-
-        private void leave_timer_Tick(object sender, EventArgs e)
-        {
-            if (IsUserLeave())
-            {
-                //用户离开了电脑
-                OnLeave();
-            }
-            SaveCursorPos();
         }
 
         private void date_timer_Tick(object sender, EventArgs e)
@@ -336,11 +335,11 @@ namespace ProjectEye.Core.Service
         {
             Debug.WriteLine("用户离开了");
             WindowManager.Hide("TipWindow");
-            leave_timer.Stop();
+            isUserAway = true;
             //停止所有服务
             DoStop();
-            //启动back timer监听鼠标状态
-            back_timer.Start();
+            //空闲检测继续运行以监听用户回来
+            idle_timer.Start();
             //事件响应
             OnLeaveEvent?.Invoke(this, 0);
         }
@@ -435,8 +434,8 @@ namespace ProjectEye.Core.Service
                 work_timer.Start();
                 workTimerStopwatch.Restart();
             }
-            //离开监听
-            leave_timer.Start();
+            //空闲检测
+            idle_timer.Start();
             //数据统计
             if (config.options.General.Data)
             {
@@ -459,8 +458,7 @@ namespace ProjectEye.Core.Service
             if (isHard)
             {
                 useeye_timer.Stop();
-                leave_timer.Stop();
-                back_timer.Stop();
+                idle_timer.Stop();
             }
             busy_timer.Stop();
         }
@@ -561,52 +559,6 @@ namespace ProjectEye.Core.Service
         {
             Exit();
         }
-        #endregion
-
-        #region 保存光标坐标
-        /// <summary>
-        /// 保存光标坐标
-        /// </summary>
-        private void SaveCursorPos()
-        {
-            Win32APIHelper.GetCursorPos(out Point point);
-            cache["CursorPos"] = point.ToString();
-        }
-        #endregion
-
-        #region 指示光标是否变化了
-        /// <summary>
-        /// 指示光标是否变化了
-        /// </summary>
-        /// <returns></returns>
-        private bool IsCursorPosChanged()
-        {
-            Win32APIHelper.GetCursorPos(out Point point);
-            var beforePos = cache["CursorPos"];
-            if (beforePos == null)
-            {
-                return true;
-            }
-            return !(beforePos.ToString() == point.ToString());
-        }
-        #endregion
-
-        #region 指示用户是否离开了电脑
-        /// <summary>
-        /// 指示用户是否离开了电脑
-        /// </summary>
-        /// <returns></returns>
-        private bool IsUserLeave()
-        {
-
-            if (!IsCursorPosChanged() && !AudioHelper.IsWindowsPlayingSound())
-            {
-                //鼠标没动且电脑没在播放声音
-                return true;
-            }
-            return false;
-        }
-
         #endregion
 
         #region 设置预提醒状态
