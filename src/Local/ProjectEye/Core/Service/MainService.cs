@@ -36,6 +36,10 @@ namespace ProjectEye.Core.Service
         /// </summary>
         private bool isUserAway;
         /// <summary>
+        /// 本次离开的开始时刻
+        /// </summary>
+        private DateTime? leaveStartTime;
+        /// <summary>
         /// 繁忙检测，用于检测用户在休息提示界面是否超时不操作
         /// </summary>
         private DispatcherTimer busy_timer;
@@ -257,6 +261,8 @@ namespace ProjectEye.Core.Service
                 //自上次检测以来有键鼠输入，用户回来了
                 Debug.WriteLine("用户回来了");
                 isUserAway = false;
+                //把本次离开时长计入统计
+                FlushLeaveTime();
                 DoStart(false);
             }
         }
@@ -284,6 +290,62 @@ namespace ProjectEye.Core.Service
         public double GetRestCountdownMinutes()
         {
             return work_timer.Interval.TotalMinutes - workTimerStopwatch.Elapsed.TotalMinutes;
+        }
+        #endregion
+
+        #region 把进行中的离开时长计入统计
+        /// <summary>
+        /// 把进行中的离开时长计入统计（用户回来或程序退出时调用）
+        /// </summary>
+        private void FlushLeaveTime()
+        {
+            if (leaveStartTime.HasValue && config.options.General.Data)
+            {
+                statistic.Add(StatisticType.LeaveTime,
+                    Math.Round((DateTime.Now - leaveStartTime.Value).TotalMinutes, 2));
+            }
+            leaveStartTime = null;
+        }
+        #endregion
+
+        #region 获取今日累计离开分钟数
+        /// <summary>
+        /// 获取今日累计离开分钟数（已入库 + 正在进行的离开段）
+        /// </summary>
+        public double GetTodayLeaveMinutes()
+        {
+            double total = statistic.GetTodayData()?.LeaveTime ?? 0;
+            if (isUserAway && leaveStartTime.HasValue)
+            {
+                total += (DateTime.Now - leaveStartTime.Value).TotalMinutes;
+            }
+            return total;
+        }
+        #endregion
+
+        #region 获取距上次休息的分钟数
+        /// <summary>
+        /// 获取距上次休息的分钟数
+        /// </summary>
+        /// <returns>返回null表示本次运行还没有休息过</returns>
+        public double? GetMinutesSinceLastRest()
+        {
+            var lastRestTime = statistic.LastRestTime;
+            if (lastRestTime.HasValue)
+            {
+                return (DateTime.Now - lastRestTime.Value).TotalMinutes;
+            }
+            return null;
+        }
+        #endregion
+
+        #region 获取当前用眼计时已经过的分钟数
+        /// <summary>
+        /// 获取当前用眼计时已经过的分钟数（用于距上次休息的回退显示）
+        /// </summary>
+        public double GetWorkTimerElapsedMinutes()
+        {
+            return workTimerStopwatch.Elapsed.TotalMinutes;
         }
         #endregion
 
@@ -336,6 +398,8 @@ namespace ProjectEye.Core.Service
             Debug.WriteLine("用户离开了");
             WindowManager.Hide("TipWindow");
             isUserAway = true;
+            //记录本次离开开始时刻用于统计离开时长
+            leaveStartTime = DateTime.Now;
             //停止所有服务
             DoStop();
             //空闲检测继续运行以监听用户回来
@@ -353,6 +417,8 @@ namespace ProjectEye.Core.Service
         {
             if (config.options.General.Data)
             {
+                //补记进行中的离开时长
+                FlushLeaveTime();
                 //更新用眼时长
                 statistic.StatisticUseEyeData();
                 //数据持久化

@@ -151,6 +151,10 @@ namespace ProjectEye.Database
 
         #region 生成创建列SQL语句
         /// <summary>
+        /// 数值类型列表
+        /// </summary>
+        private static readonly string[] NumericTypes = { "int", "float", "real", "double", "decimal" };
+        /// <summary>
         /// 生成创建列SQL语句
         /// </summary>
         /// <param name="tableName">表名</param>
@@ -158,7 +162,10 @@ namespace ProjectEye.Database
         /// <returns></returns>
         private string GetCreateColumnSQL(string tableName, IModelProperties properties)
         {
-            string typeDefault = properties.NotNull ? properties.Type == "int" ? "NOT NULL DEFAULT 0" : "NOT NULL DEFAULT ''" : "";
+            //数值类型默认值必须为0，否则旧行会被填入空字符串导致读取失败
+            string typeDefault = properties.NotNull
+                ? NumericTypes.Contains(properties.Type) ? "NOT NULL DEFAULT 0" : "NOT NULL DEFAULT ''"
+                : "";
             return $"ALTER table {tableName} ADD COLUMN  [{properties.Name}] {properties.Type} {typeDefault}";
         }
         #endregion

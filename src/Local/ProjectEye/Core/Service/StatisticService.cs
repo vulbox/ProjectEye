@@ -25,7 +25,15 @@ namespace ProjectEye.Core.Service
         /// <summary>
         /// 跳过次数
         /// </summary>
-        SkipCount
+        SkipCount,
+        /// <summary>
+        /// 休息次数
+        /// </summary>
+        RestCount,
+        /// <summary>
+        /// 离开电脑时长（单位分钟）
+        /// </summary>
+        LeaveTime
     }
     /// <summary>
     /// 统计 Service
@@ -57,6 +65,10 @@ namespace ProjectEye.Core.Service
         /// 今日数据
         /// </summary>
         private StatisticModel todayStatistic;
+        /// <summary>
+        /// 今日最后一次休息的开始时刻（内存记录，程序重启后丢失）
+        /// </summary>
+        public DateTime? LastRestTime { get; private set; }
         /// <summary>
         /// 工作时间测量器
         /// </summary>
@@ -208,11 +220,34 @@ namespace ProjectEye.Core.Service
                 case StatisticType.SkipCount:
                     todayStatistic.SkipCount += (int)value;
                     break;
+                case StatisticType.RestCount:
+                    //先做跨天检查再累加，避免跨天时段错记到昨天
+                    EnsureToday();
+                    todayStatistic.RestCount += (int)value;
+                    break;
+                case StatisticType.LeaveTime:
+                    EnsureToday();
+                    todayStatistic.LeaveTime = Math.Round(todayStatistic.LeaveTime + value, 2);
+                    break;
             }
             if (todayStatistic == null ||
                 todayStatistic.Date.Date != DateTime.Now.Date)
             {
                 //更新日期数据
+                todayStatistic = FindCreate(DateTime.Now.Date);
+            }
+        }
+        #endregion
+
+        #region 确保今日统计数据有效
+        /// <summary>
+        /// 跨天时把今日统计切换到新日期的行
+        /// </summary>
+        private void EnsureToday()
+        {
+            if (todayStatistic == null ||
+                todayStatistic.Date.Date != DateTime.Now.Date)
+            {
                 todayStatistic = FindCreate(DateTime.Now.Date);
             }
         }
@@ -298,6 +333,8 @@ namespace ProjectEye.Core.Service
                     item.ResetTime = todayStatistic.ResetTime;
                     item.SkipCount = todayStatistic.SkipCount;
                     item.WorkingTime = todayStatistic.WorkingTime;
+                    item.RestCount = todayStatistic.RestCount;
+                    item.LeaveTime = todayStatistic.LeaveTime;
                     db.SaveChanges();
                 }
             });
@@ -356,6 +393,16 @@ namespace ProjectEye.Core.Service
         public StatisticModel GetTodayData()
         {
             return todayStatistic;
+        }
+        #endregion
+
+        #region 记录今日最后休息时刻
+        /// <summary>
+        /// 记录今日最后一次休息的开始时刻
+        /// </summary>
+        public void SetLastRestTime()
+        {
+            LastRestTime = DateTime.Now;
         }
         #endregion
 

@@ -27,6 +27,13 @@
     <sys:String x:Key="Lang_x_n"></sys:String>
     <sys:String x:Key="Lang_number">{value}</sys:String>
 
+    <sys:String x:Key="Lang_TodayStatus">Today</sys:String>
+    <sys:String x:Key="Lang_TimeSinceLastRest">Since last break</sys:String>
+    <sys:String x:Key="Lang_TimeToNextBreak">Until next break</sys:String>
+    <sys:String x:Key="Lang_TodayRestCount">Breaks today</sys:String>
+    <sys:String x:Key="Lang_TodayLeaveTime">Away time today</sys:String>
+    <sys:String x:Key="Lang_Paused">Paused</sys:String>
+
     <sys:String x:Key="Lang_TomatoTimer">Tomato Timer</sys:String>
     <sys:String x:Key="Lang_Work">Work</sys:String>
     <sys:String x:Key="Lang_Shortbreak">Short break</sys:String>

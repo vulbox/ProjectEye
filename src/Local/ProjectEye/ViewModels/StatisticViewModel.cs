@@ -9,16 +9,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace ProjectEye.ViewModels
 {
-    public class StatisticViewModel
+    public class StatisticViewModel : IViewModel
     {
+        public string ScreenName { get; set; }
+        public Window WindowInstance { get; set; }
+        public event ViewModelEventHandler ChangedEvent;
+
         public StatisticModel Data { get; set; }
 
         private readonly StatisticService statistic;
         private readonly ConfigService config;
         private readonly TomatoService tomato;
+        private readonly MainService main;
+        /// <summary>
+        /// 今日状态刷新计时器
+        /// </summary>
+        private readonly DispatcherTimer todayTimer;
 
         private int yearmonth = 0;
         ///// <summary>
@@ -35,11 +45,13 @@ namespace ProjectEye.ViewModels
         public StatisticViewModel(
             StatisticService statistic,
             ConfigService config,
-            TomatoService tomato)
+            TomatoService tomato,
+            MainService main)
         {
             this.statistic = statistic;
             this.config = config;
             this.tomato = tomato;
+            this.main = main;
 
             yearmonth = DateTime.Now.Year + DateTime.Now.Month;
 
@@ -71,7 +83,79 @@ namespace ProjectEye.ViewModels
             HandleWeekData();
             Analysis();
             LoadImages();
+
+            //今日状态：立即刷新 + 定时刷新
+            RefreshTodayStatus();
+            todayTimer = new DispatcherTimer();
+            todayTimer.Interval = TimeSpan.FromSeconds(30);
+            todayTimer.Tick += new EventHandler(todayTimer_Tick);
+            todayTimer.Start();
         }
+
+        public void OnChanged()
+        {
+            //窗口关闭时停止刷新计时器，防止计时器持有ViewModel造成泄漏
+            WindowInstance.Closed += new EventHandler(window_Closed);
+            ChangedEvent?.Invoke();
+        }
+
+        private void window_Closed(object sender, EventArgs e)
+        {
+            if (todayTimer != null)
+            {
+                todayTimer.Stop();
+            }
+        }
+
+        private void todayTimer_Tick(object sender, EventArgs e)
+        {
+            RefreshTodayStatus();
+        }
+
+        #region 刷新今日状态指标
+        /// <summary>
+        /// 刷新今日状态指标（距上次休息/距下次休息/今日休息次数/今日离开时长）
+        /// </summary>
+        private void RefreshTodayStatus()
+        {
+            var lang = Application.Current.Resources;
+            var minutesText = lang["Lang_Minutes"];
+            if (config.options.General.Data)
+            {
+                //距上次休息（本次运行还没休息过时，回退显示当前用眼计时已过时长）
+                double since = main.GetMinutesSinceLastRest() ?? main.GetWorkTimerElapsedMinutes();
+                Data.SinceLastRestText = $"{Math.Floor(since)} {minutesText}";
+
+                //今日休息次数
+                Data.TodayRestCountText = $"{statistic.GetTodayData()?.RestCount ?? 0} {lang["Lang_x_n"]}";
+
+                //今日离开时长
+                double leave = main.GetTodayLeaveMinutes();
+                Data.TodayLeaveTimeText = leave >= 60
+                    ? $"{(int)(leave / 60)} {lang["Lang_Hours"]} {Math.Floor(leave % 60)} {minutesText}"
+                    : $"{Math.Floor(leave)} {minutesText}";
+            }
+            else
+            {
+                Data.SinceLastRestText = "--";
+                Data.TodayRestCountText = "--";
+                Data.TodayLeaveTimeText = "--";
+            }
+
+            //距下次休息倒计时（不依赖统计开关；计时停止表示暂停/离开/番茄等状态）
+            if (main.IsWorkTimerRun())
+            {
+                double countdown = main.GetRestCountdownMinutes();
+                Data.RestCountdownText = countdown < 1
+                    ? $"{Math.Ceiling(countdown * 60)} {lang["Lang_Seconds"]}"
+                    : $"{Math.Ceiling(countdown)} {minutesText}";
+            }
+            else
+            {
+                Data.RestCountdownText = $"{lang["Lang_Paused"]}";
+            }
+        }
+        #endregion
 
 
 

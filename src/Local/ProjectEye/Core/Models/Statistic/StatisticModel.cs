@@ -23,5 +23,13 @@ namespace ProjectEye.Core.Models.Statistic
         /// 跳过次数
         /// </summary>
         public int SkipCount { get; set; } = 0;
+        /// <summary>
+        /// 休息次数
+        /// </summary>
+        public int RestCount { get; set; } = 0;
+        /// <summary>
+        /// 离开电脑累计时长（单位分钟）
+        /// </summary>
+        public double LeaveTime { get; set; } = 0;
     }
 }

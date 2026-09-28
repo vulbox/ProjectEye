@@ -68,6 +68,30 @@ namespace ProjectEye.Models
             }
         }
 
+        private string SinceLastRestText_;
+        /// <summary>
+        /// 今日状态：距上次休息时间
+        /// </summary>
+        public string SinceLastRestText { get { return SinceLastRestText_; } set { SinceLastRestText_ = value; OnPropertyChanged(); } }
+
+        private string RestCountdownText_;
+        /// <summary>
+        /// 今日状态：距下次休息倒计时
+        /// </summary>
+        public string RestCountdownText { get { return RestCountdownText_; } set { RestCountdownText_ = value; OnPropertyChanged(); } }
+
+        private string TodayRestCountText_;
+        /// <summary>
+        /// 今日状态：休息次数
+        /// </summary>
+        public string TodayRestCountText { get { return TodayRestCountText_; } set { TodayRestCountText_ = value; OnPropertyChanged(); } }
+
+        private string TodayLeaveTimeText_;
+        /// <summary>
+        /// 今日状态：离开电脑时长
+        /// </summary>
+        public string TodayLeaveTimeText { get { return TodayLeaveTimeText_; } set { TodayLeaveTimeText_ = value; OnPropertyChanged(); } }
+
         private List<ChartDataModel> MonthWorkData_;
         /// <summary>
         /// 月份工作统计数据

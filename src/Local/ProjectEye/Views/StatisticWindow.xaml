@@ -131,12 +131,63 @@
     </ui:Project1UIWindow.ExtElement>
     <Grid Margin="10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="9*"/>
             <RowDefinition Height="auto"/>
 
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0">
+        <!--今日状态卡片区-->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!--距上次休息-->
+            <Border Grid.Column="0" Padding="14,10" CornerRadius="6" Background="#F2F2F9" Margin="0,0,5,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Icon Unicode="&#xE823;" FontSize="14" VerticalAlignment="Center" Foreground="#4f6bed"/>
+                        <TextBlock Text="{DynamicResource Lang_TimeSinceLastRest}" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center" Opacity=".7"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Data.SinceLastRestText}" FontSize="24" FontWeight="Bold" Margin="0,4,0,0" Foreground="{DynamicResource ThemeBrush}"/>
+                </StackPanel>
+            </Border>
+            <!--距下次休息-->
+            <Border Grid.Column="1" Padding="14,10" CornerRadius="6" Background="#F2F8FF" Margin="5,0,5,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Icon Unicode="&#xE916;" FontSize="14" VerticalAlignment="Center" Foreground="#4f6bed"/>
+                        <TextBlock Text="{DynamicResource Lang_TimeToNextBreak}" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center" Opacity=".7"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Data.RestCountdownText}" FontSize="24" FontWeight="Bold" Margin="0,4,0,0" Foreground="{DynamicResource ThemeBrush}"/>
+                </StackPanel>
+            </Border>
+            <!--今日休息次数-->
+            <Border Grid.Column="2" Padding="14,10" CornerRadius="6" Background="#F9FDFA" Margin="5,0,5,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Icon Unicode="&#xF2FA;" FontSize="14" VerticalAlignment="Center" Foreground="#1CE072"/>
+                        <TextBlock Text="{DynamicResource Lang_TodayRestCount}" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center" Opacity=".7"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Data.TodayRestCountText}" FontSize="24" FontWeight="Bold" Margin="0,4,0,0" Foreground="{DynamicResource ThemeBrush}"/>
+                </StackPanel>
+            </Border>
+            <!--今日离开时长-->
+            <Border Grid.Column="3" Padding="14,10" CornerRadius="6" Background="#FFF7EF" Margin="5,0,0,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Icon Unicode="&#xE77B;" FontSize="14" VerticalAlignment="Center" Foreground="#ED9B40"/>
+                        <TextBlock Text="{DynamicResource Lang_TodayLeaveTime}" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center" Opacity=".7"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Data.TodayLeaveTimeText}" FontSize="24" FontWeight="Bold" Margin="0,4,0,0" Foreground="{DynamicResource ThemeBrush}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TabControl Grid.Row="1">
             <TabItem Header="{DynamicResource Lang_Thisweek}">
                 <Grid>
                     <Grid.RowDefinitions>

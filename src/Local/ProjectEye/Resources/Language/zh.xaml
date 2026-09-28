@@ -27,6 +27,13 @@
     <sys:String x:Key="Lang_x_n">次</sys:String>
     <sys:String x:Key="Lang_number">{value} 个</sys:String>
 
+    <sys:String x:Key="Lang_TodayStatus">今日状态</sys:String>
+    <sys:String x:Key="Lang_TimeSinceLastRest">距上次休息</sys:String>
+    <sys:String x:Key="Lang_TimeToNextBreak">距下次休息</sys:String>
+    <sys:String x:Key="Lang_TodayRestCount">今日休息次数</sys:String>
+    <sys:String x:Key="Lang_TodayLeaveTime">今日离开时长</sys:String>
+    <sys:String x:Key="Lang_Paused">已暂停</sys:String>
+
 
     <sys:String x:Key="Lang_TomatoTimer">番茄时钟</sys:String>
     <sys:String x:Key="Lang_Work">工作时长</sys:String>

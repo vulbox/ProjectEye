@@ -442,6 +442,8 @@ namespace ProjectEye.ViewModels
             if (config.options.General.Data)
             {
                 statistic.Add(StatisticType.ResetTime, config.options.General.RestTime);
+                statistic.Add(StatisticType.RestCount, 1);
+                statistic.SetLastRestTime();
             }
         }
         private void busyCommand_action(object obj)
