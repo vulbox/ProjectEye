@@ -48,5 +48,17 @@ namespace ProjectEye.Core.Models.Options
         /// 是否是番茄时钟模式
         /// </summary>
         public bool IsTomatoMode { get; set; } = false;
+        /// <summary>
+        /// 是否启用长休息
+        /// </summary>
+        public bool IsLongRest { get; set; } = true;
+        /// <summary>
+        /// 长休息触发次数（每完成N次休息提醒触发一次长休息）
+        /// </summary>
+        public int LongRestCount { get; set; } = 3;
+        /// <summary>
+        /// 长休息时长（单位：分钟）
+        /// </summary>
+        public int LongRestTime { get; set; } = 5;
     }
 }

@@ -19,6 +19,10 @@ namespace ProjectEye.Core.Service
         /// 立即休息热键ID
         /// </summary>
         private const int HOTKEY_ID_RESET = 0x0001;
+        /// <summary>
+        /// 长休息倒计时跳过（显隐）热键ID
+        /// </summary>
+        private const int HOTKEY_ID_SKIP = 0x0002;
 
         #region win32
         [DllImport("user32.dll", SetLastError = true)]
@@ -39,21 +43,26 @@ namespace ProjectEye.Core.Service
         private readonly ConfigService config;
         private readonly MainService main;
         private readonly RestService reset;
+        private readonly LongRestService longRest;
         private HwndSource source;
         private IntPtr hwnd = IntPtr.Zero;
         private readonly HwndSourceHook hwndSourceHook;
         private bool isRegistered;
+        private bool isSkipRegistered;
 
         public HotkeyService(App app,
             ConfigService config,
             MainService main,
-            RestService reset)
+            RestService reset,
+            LongRestService longRest)
         {
             this.config = config;
             this.main = main;
             this.reset = reset;
+            this.longRest = longRest;
             hwndSourceHook = new HwndSourceHook(WndProc);
             app.Exit += new ExitEventHandler(app_Exit);
+            this.longRest.RunningChanged += new EventHandler(longRest_RunningChanged);
         }
 
         public void Init()
@@ -88,6 +97,15 @@ namespace ProjectEye.Core.Service
                 //热键配置更改，重新注册
                 Register();
             }
+            if (oldOptions.KeyboardShortcuts.NoReset != config.options.KeyboardShortcuts.NoReset)
+            {
+                UpdateSkipHotkey();
+            }
+        }
+
+        private void longRest_RunningChanged(object sender, EventArgs e)
+        {
+            UpdateSkipHotkey();
         }
 
         #region 注册热键
@@ -131,6 +149,49 @@ namespace ProjectEye.Core.Service
             {
                 UnregisterHotKey(hwnd, HOTKEY_ID_RESET);
                 isRegistered = false;
+            }
+        }
+
+        /// <summary>
+        /// 长休息倒计时进行中时注册跳过快捷键（仅此时占用全局热键，避免平时抢走按键）
+        /// </summary>
+        private void UpdateSkipHotkey()
+        {
+            UnregisterSkip();
+            if (!longRest.IsRunning || hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+            var hotkey = config.options.KeyboardShortcuts.NoReset;
+            if (string.IsNullOrEmpty(hotkey))
+            {
+                return;
+            }
+            uint modifiers, vk;
+            if (TryParseHotkey(hotkey, out modifiers, out vk))
+            {
+                if (RegisterHotKey(hwnd, HOTKEY_ID_SKIP, modifiers, vk))
+                {
+                    isSkipRegistered = true;
+                    Debug.WriteLine("长休息跳过热键注册成功：" + hotkey);
+                }
+                else
+                {
+                    LogHelper.Warning("长休息跳过热键注册失败，可能已被其他程序占用：" + hotkey);
+                }
+            }
+            else
+            {
+                LogHelper.Warning("长休息跳过热键配置无法解析：" + hotkey);
+            }
+        }
+
+        private void UnregisterSkip()
+        {
+            if (isSkipRegistered)
+            {
+                UnregisterHotKey(hwnd, HOTKEY_ID_SKIP);
+                isSkipRegistered = false;
             }
         }
         #endregion
@@ -203,11 +264,16 @@ namespace ProjectEye.Core.Service
                     if (wParam.ToInt32() == HOTKEY_ID_RESET)
                     {
                         //休息进行中时忽略
-                        if (!reset.IsRunning)
+                        if (!reset.IsRunning && !longRest.IsRunning)
                         {
                             //立即进入休息
                             main.ResetNow();
                         }
+                    }
+                    else if (wParam.ToInt32() == HOTKEY_ID_SKIP)
+                    {
+                        //长休息倒计时中：隐藏/恢复右下角窗口，后台继续计时
+                        longRest.ToggleCornerWindow();
                     }
                     break;
             }
@@ -217,6 +283,7 @@ namespace ProjectEye.Core.Service
         private void app_Exit(object sender, ExitEventArgs e)
         {
             Unregister();
+            UnregisterSkip();
             if (source != null)
             {
                 source.RemoveHook(hwndSourceHook);

@@ -1,0 +1,25 @@
+<Window x:Class="ProjectEye.Views.LongRestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="LongRestWindow"
+        Width="230" Height="92"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        Topmost="True" ShowActivated="False" Focusable="False"
+        Background="Transparent" AllowsTransparency="True"
+        WindowStartupLocation="Manual" Visibility="Hidden">
+    <Border CornerRadius="10" Background="#CC1F1F1F" BorderBrush="#66FFFFFF" BorderThickness="1" Padding="18,10">
+        <StackPanel>
+            <TextBlock Text="{DynamicResource Lang_LongRestCountdownTitle}"
+                       FontSize="13"
+                       Foreground="#FFB8B8B8"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding CountdownText}"
+                       FontSize="28" FontWeight="Bold"
+                       Foreground="#FFE6E6E6"
+                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+    </Border>
+</Window>

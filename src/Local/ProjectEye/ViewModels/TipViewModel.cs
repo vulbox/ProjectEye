@@ -7,6 +7,8 @@ using ProjectEye.Core.Service;
 using ProjectEye.Models;
 using ProjectEye.Models.UI;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,6 +43,7 @@ namespace ProjectEye.ViewModels
         private readonly KeyboardShortcutsService keyboardShortcuts;
         private readonly PreAlertService preAlert;
         private readonly ThemeService theme;
+        private readonly LongRestService longRest;
 
         public event ViewModelEventHandler ChangedEvent;
 
@@ -52,7 +55,8 @@ namespace ProjectEye.ViewModels
             App app,
             KeyboardShortcutsService keyboardShortcuts,
             PreAlertService preAlert,
-            ThemeService theme)
+            ThemeService theme,
+            LongRestService longRest)
         {
             this.reset = reset;
             this.reset.TimeChanged += new RestEventHandler(timeChanged);
@@ -61,6 +65,10 @@ namespace ProjectEye.ViewModels
             this.sound = sound;
             this.config = config;
             this.config.Changed += config_Changed;
+
+            this.longRest = longRest;
+            this.longRest.PromptShown += new RestEventHandler(longRest_PromptShown);
+            this.longRest.PromptClosed += new RestEventHandler(longRest_PromptClosed);
 
 
             resetCommand = new Command(new Action<object>(resetCommand_action));
@@ -137,8 +145,10 @@ namespace ProjectEye.ViewModels
             try
             {
                 COUNTDOWN = config.options.General.RestTime;
-                //提醒间隔变量
-                T = config.options.General.WarnTime.ToString();
+                //提醒间隔变量（长休息提示时显示累计工作时长）
+                T = longRest.IsWaitingPrompt
+                    ? (config.options.General.WarnTime * config.options.General.LongRestCount).ToString()
+                    : config.options.General.WarnTime.ToString();
                 //当前时间
                 TIME = DateTime.Now.ToString();
                 //年
@@ -436,6 +446,17 @@ namespace ProjectEye.ViewModels
         private void resetCommand_action(object obj)
         {
             main.StopBusyListener();
+            if (longRest.IsWaitingPrompt)
+            {
+                //长休息提示：开始长休息
+                longRest.Start();
+                return;
+            }
+            if (longRest.IsRunning)
+            {
+                //长休息倒计时进行中，忽略普通休息指令（多显示器窗口重复触发或全局热键触发）
+                return;
+            }
             CountDownVisibility = System.Windows.Visibility.Visible;
             TakeButtonVisibility = System.Windows.Visibility.Hidden;
             reset.Start();
@@ -451,18 +472,96 @@ namespace ProjectEye.ViewModels
             main.StopBusyListener();
             //中断休息倒计时，避免计时器仍在运行导致全局热键失效
             reset.Stop();
-            main.ReStart();
-            WindowManager.Hide("TipWindow");
+            if (longRest.IsWaitingPrompt)
+            {
+                //长休息提示：跳过长休息
+                longRest.Skip();
+                return;
+            }
             if (config.options.General.Data)
             {
                 statistic.Add(StatisticType.SkipCount, 1);
             }
+            main.ReStart();
+            WindowManager.Hide("TipWindow");
         }
         private void timeChanged(object sender, int timed)
         {
             COUNTDOWN = timed;
 
         }
+
+        private void longRest_PromptShown(object sender, int timed)
+        {
+            //重置提示窗口状态，确保休息/跳过按钮可见
+            Init();
+            //长休息提示显示时更新窗口变量
+            UpdateVariable();
+            //休息按钮加上（长休息）标注
+            SetRestButtonText("好的（长休息）");
+        }
+
+        private void longRest_PromptClosed(object sender, int timed)
+        {
+            //恢复休息按钮原始文字
+            SetRestButtonText(originalRestButtonText);
+            originalRestButtonText = null;
+        }
+
+        #region 长休息提示按钮文字
+        /// <summary>
+        /// 长休息提示时休息按钮的原始文字
+        /// </summary>
+        private string originalRestButtonText;
+
+        /// <summary>
+        /// 设置所有提示窗口中休息按钮的文字（长休息提示时加上（长休息）标注）
+        /// </summary>
+        private void SetRestButtonText(string text)
+        {
+            var windows = WindowManager.GetWindows("TipWindow");
+            if (windows == null)
+            {
+                return;
+            }
+            foreach (var window in windows)
+            {
+                foreach (var button in FindVisualChildren<Project1UIButton>(window))
+                {
+                    if (button.Command == resetCommand)
+                    {
+                        if (originalRestButtonText == null)
+                        {
+                            originalRestButtonText = button.Content as string;
+                        }
+                        button.Content = text;
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null)
+            {
+                yield break;
+            }
+            int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                var typed = child as T;
+                if (typed != null)
+                {
+                    yield return typed;
+                }
+                foreach (var grandChild in FindVisualChildren<T>(child))
+                {
+                    yield return grandChild;
+                }
+            }
+        }
+        #endregion
 
         ///// <summary>
         ///// 窗口监听
@@ -491,6 +590,15 @@ namespace ProjectEye.ViewModels
                 //清除标记，避免多显示器窗口重复触发
                 main.ClearForceReset();
                 resetCommand_action(null);
+                return;
+            }
+            //长休息提示：按用户的自动休息设置直接开始长休息
+            if (longRest.IsWaitingPrompt)
+            {
+                if (!config.options.Style.IsTipAsk || config.options.Behavior.IsDisabledSkip)
+                {
+                    longRest.Start();
+                }
                 return;
             }
             //询问

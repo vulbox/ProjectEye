@@ -13,6 +13,11 @@
     <sys:String x:Key="Lang_General">General</sys:String>
     <sys:String x:Key="Lang_Notificationinterval">Notification interval</sys:String>
     <sys:String x:Key="Lang_Breaktimelength">Break time length</sys:String>
+    <sys:String x:Key="Lang_LongRest">Long break</sys:String>
+    <sys:String x:Key="Lang_LongRestTip">After a set number of handled break reminders, take a longer break with a countdown shown in the bottom-right corner of the screen. Regular reminders pause during it.</sys:String>
+    <sys:String x:Key="Lang_LongRestCount">Long break trigger count</sys:String>
+    <sys:String x:Key="Lang_LongRestTime">Long break length</sys:String>
+    <sys:String x:Key="Lang_LongRestCountdownTitle">Long break</sys:String>
     <sys:String x:Key="Lang_Autostartatboot">Auto start at boot</sys:String>
     <sys:String x:Key="Lang_Soundforbreakend">Sound for break's end</sys:String>
     <sys:String x:Key="Lang_Leavelistener">Leave listener</sys:String>

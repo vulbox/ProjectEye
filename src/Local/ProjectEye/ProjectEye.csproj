@@ -116,6 +116,7 @@
     <Compile Include="Core\Service\HotkeyService.cs" />
     <Compile Include="Core\Service\IService.cs" />
     <Compile Include="Core\Service\KeyboardShortcutsService.cs" />
+    <Compile Include="Core\Service\LongRestService.cs" />
     <Compile Include="Core\Service\MainService.cs" />
     <Compile Include="Core\Service\NotificationService.cs" />
     <Compile Include="Core\Service\PreAlertService.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Database\SQLiteConfiguration.cs" />
     <Compile Include="Database\StatisticContext.cs" />
     <Compile Include="Models\TipViewDesignModel.cs" />
+    <Compile Include="Models\LongRestModel.cs" />
     <Compile Include="Models\EyesTestModel.cs" />
     <Compile Include="Models\UI\UIDesignModel.cs" />
     <Compile Include="Models\UpdateModel.cs" />
@@ -152,6 +154,7 @@
     <Compile Include="ViewModels\Command.cs" />
     <Compile Include="ViewModels\EyesTestViewModel.cs" />
     <Compile Include="ViewModels\IViewModel.cs" />
+    <Compile Include="ViewModels\LongRestViewModel.cs" />
     <Compile Include="ViewModels\ContributorsViewModel.cs" />
     <Compile Include="ViewModels\TipViewDesignViewModel.cs" />
     <Compile Include="ViewModels\UpdateViewModel.cs" />
@@ -164,6 +167,9 @@
     </Compile>
     <Compile Include="Views\EyesTestWindow.xaml.cs">
       <DependentUpon>EyesTestWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LongRestWindow.xaml.cs">
+      <DependentUpon>LongRestWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\OptionsWindow.xaml.cs">
       <DependentUpon>OptionsWindow.xaml</DependentUpon>
@@ -369,6 +375,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EyesTestWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LongRestWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -83,12 +83,25 @@
                         <!--<StackPanel>-->
 
                                 <!--休息时长-->
-                            <Slider 
+                            <Slider
                                 Margin="0,20,0,0"
                                 Grid.Row="1"
                                 Tag="{DynamicResource Lang_Breaktimelength}"
                                 VerticalAlignment="Center"
                                 Grid.Column="1" Maximum="300" Minimum="1" SmallChange="1" Value="{Binding Model.Data.General.RestTime}" ToolTip="{DynamicResource Lang_Seconds}"/>
+                            <!--长休息-->
+                            <ui:Toggle Text="{DynamicResource Lang_LongRest}" IsChecked="{Binding Model.Data.General.IsLongRest}" Margin="0,20,0,0" Cursor="Hand"
+                                       ToolTip="{DynamicResource Lang_LongRestTip}"/>
+                            <Slider
+                                Margin="0,20,0,0"
+                                Tag="{DynamicResource Lang_LongRestCount}"
+                                VerticalAlignment="Center"
+                                Maximum="10" Minimum="2" SmallChange="1" Value="{Binding Model.Data.General.LongRestCount}" ToolTip="{DynamicResource Lang_x_n}"/>
+                            <Slider
+                                Margin="0,20,0,0"
+                                Tag="{DynamicResource Lang_LongRestTime}"
+                                VerticalAlignment="Center"
+                                Maximum="60" Minimum="1" SmallChange="1" Value="{Binding Model.Data.General.LongRestTime}" ToolTip="{DynamicResource Lang_Minutes}"/>
                             <!--<TextBlock 
                                 Grid.Row="1"
                                 Grid.Column="0"

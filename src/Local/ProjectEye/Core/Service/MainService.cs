@@ -54,6 +54,10 @@ namespace ProjectEye.Core.Service
         /// 预提醒操作
         /// </summary>
         private PreAlertAction preAlertAction;
+        /// <summary>
+        /// 长休息进行中标记（由LongRestService维护，长休息倒计时期间保持工作计时暂停）
+        /// </summary>
+        public bool IsLongRestRunning { get; set; }
         #region Service
         private readonly ScreenService screen;
         private readonly ConfigService config;
@@ -72,6 +76,21 @@ namespace ProjectEye.Core.Service
 
         #region Event
         public delegate void MainEventHandler(object service, int msg);
+        /// <summary>
+        /// 提示窗口显示前事件参数
+        /// </summary>
+        public class TipShowEventArgs : EventArgs
+        {
+            /// <summary>
+            /// 是否已由订阅者接管显示（如长休息提示）
+            /// </summary>
+            public bool Handled { get; set; }
+        }
+        public delegate void TipShowEventHandler(object sender, TipShowEventArgs e);
+        /// <summary>
+        /// 提示窗口即将显示时发生（实际会弹窗的提醒，自动跳过的不触发）
+        /// </summary>
+        public event TipShowEventHandler OnBeforeTipShow;
         /// <summary>
         /// 用户离开时发生
         /// </summary>
@@ -401,6 +420,19 @@ namespace ProjectEye.Core.Service
         }
         #endregion
 
+        #region 开始繁忙超时监听
+        /// <summary>
+        /// 开始繁忙超时监听（显示提示窗口后用户超时未处理时触发OnHandleTimeout）
+        /// </summary>
+        public void StartBusyListener()
+        {
+            if (!busy_timer.IsEnabled)
+            {
+                busy_timer.Start();
+            }
+        }
+        #endregion
+
         #region 进入离开状态
         /// <summary>
         /// 进入离开状态
@@ -508,9 +540,18 @@ namespace ProjectEye.Core.Service
             //允许硬启动，否则只有在关闭暂不提醒和番茄时钟模式时才允许启动工作计时
             if (isHard || !config.options.General.Noreset && !config.options.General.IsTomatoMode)
             {
-                //休息提醒
-                work_timer.Start();
-                workTimerStopwatch.Restart();
+                if (IsLongRestRunning)
+                {
+                    //长休息进行中，保持工作计时暂停
+                    work_timer.Stop();
+                    workTimerStopwatch.Stop();
+                }
+                else
+                {
+                    //休息提醒
+                    work_timer.Start();
+                    workTimerStopwatch.Restart();
+                }
             }
             //空闲检测（受离开监听开关控制）
             if (config.options.General.LeaveListener)
@@ -520,8 +561,11 @@ namespace ProjectEye.Core.Service
             //数据统计
             if (config.options.General.Data)
             {
-                //重置用眼计时
-                statistic.ResetStatisticTime();
+                if (!IsLongRestRunning)
+                {
+                    //重置用眼计时
+                    statistic.ResetStatisticTime();
+                }
                 //用眼统计
                 useeye_timer.Start();
             }
@@ -599,8 +643,14 @@ namespace ProjectEye.Core.Service
                 }
                 else
                 {
-                    busy_timer.Start();
-                    WindowManager.Show("TipWindow");
+                    //提示窗口显示前事件，允许长休息服务等接管本次提示
+                    var tipArgs = new TipShowEventArgs();
+                    OnBeforeTipShow?.Invoke(this, tipArgs);
+                    if (!tipArgs.Handled)
+                    {
+                        busy_timer.Start();
+                        WindowManager.Show("TipWindow");
+                    }
                 }
             }
         }
@@ -620,9 +670,12 @@ namespace ProjectEye.Core.Service
             }
             else
             {
-                //隐藏时继续计时
-                work_timer.Start();
-                workTimerStopwatch.Restart();
+                //隐藏时继续计时（长休息倒计时期间保持暂停）
+                if (!IsLongRestRunning)
+                {
+                    work_timer.Start();
+                    workTimerStopwatch.Restart();
+                }
             }
         }
         #endregion

@@ -22,6 +22,7 @@ namespace ProjectEye.Core.Service
         private readonly ConfigService config;
         private readonly BackgroundWorkerService backgroundWorker;
         private readonly ThemeService theme;
+        private readonly LongRestService longRestService;
         //托盘菜单项
         private ContextMenu contextMenu;
         private MenuItem menuItem_NoReset;
@@ -53,13 +54,15 @@ namespace ProjectEye.Core.Service
             MainService mainService,
             ConfigService config,
             BackgroundWorkerService backgroundWorker,
-            ThemeService theme)
+            ThemeService theme,
+            LongRestService longRestService)
         {
             this.app = app;
             this.mainService = mainService;
             this.config = config;
             this.backgroundWorker = backgroundWorker;
             this.theme = theme;
+            this.longRestService = longRestService;
             this.config.Changed += new EventHandler(config_Changed);
             this.theme.OnChangedTheme += Theme_OnChangedTheme;
             app.Exit += new ExitEventHandler(app_Exit);
@@ -348,6 +351,16 @@ namespace ProjectEye.Core.Service
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(menuItem_NoReset);
             //contextMenu.Items.Add(menuItem_Sound);
+#if DEBUG
+            //调试：立即触发长休息提示
+            var menuItem_DebugLongRest = new MenuItem();
+            menuItem_DebugLongRest.Header = "立即长休息（调试）";
+            menuItem_DebugLongRest.Click += (s, e) =>
+            {
+                longRestService.Prompt();
+            };
+            contextMenu.Items.Add(menuItem_DebugLongRest);
+#endif
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(menuItem_Quit);
 

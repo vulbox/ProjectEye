@@ -55,14 +55,16 @@ namespace ProjectEye
                 serviceCollection.Add<ScreenService>();
                 //主要
                 serviceCollection.Add<MainService>();
+                //声音
+                serviceCollection.Add<SoundService>();
+                //长休息（托盘服务依赖，须在托盘之前添加）
+                serviceCollection.Add<LongRestService>();
                 //托盘
                 serviceCollection.Add<TrayService>();
                 //休息
                 serviceCollection.Add<RestService>();
                 //全局热键
                 serviceCollection.Add<HotkeyService>();
-                //声音
-                serviceCollection.Add<SoundService>();
                 //快捷键
                 serviceCollection.Add<KeyboardShortcutsService>();
                 //预提醒
