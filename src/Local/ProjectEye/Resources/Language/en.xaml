@@ -15,6 +15,8 @@
     <sys:String x:Key="Lang_Breaktimelength">Break time length</sys:String>
     <sys:String x:Key="Lang_Autostartatboot">Auto start at boot</sys:String>
     <sys:String x:Key="Lang_Soundforbreakend">Sound for break's end</sys:String>
+    <sys:String x:Key="Lang_Leavelistener">Leave listener</sys:String>
+    <sys:String x:Key="Lang_LeavelistenerTip">If you leave the computer, the timer pauses until you come back - no action needed!</sys:String>
     <sys:String x:Key="Lang_Statisticsanalysis">Statistics analysis</sys:String>
     <sys:String x:Key="Lang_Leaveblankfordefault">Leave blank for default</sys:String>
     <sys:String x:Key="Lang_Preview">Preview</sys:String>

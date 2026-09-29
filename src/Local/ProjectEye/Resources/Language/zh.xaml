@@ -15,6 +15,8 @@
     <sys:String x:Key="Lang_Breaktimelength">休息时长</sys:String>
     <sys:String x:Key="Lang_Autostartatboot">开机启动</sys:String>
     <sys:String x:Key="Lang_Soundforbreakend">休息结束提示音</sys:String>
+    <sys:String x:Key="Lang_Leavelistener">离开监听</sys:String>
+    <sys:String x:Key="Lang_LeavelistenerTip">如果你离开了电脑我会停止计时直到你回来，且不需要你进行任何操作哦！</sys:String>
     <sys:String x:Key="Lang_Statisticsanalysis">数据建议</sys:String>
     <sys:String x:Key="Lang_Leaveblankfordefault">留空时使用系统默认</sys:String>
     <sys:String x:Key="Lang_Preview">预览</sys:String>

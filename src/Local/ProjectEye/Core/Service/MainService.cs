@@ -25,12 +25,7 @@ namespace ProjectEye.Core.Service
         /// <summary>
         /// 用户离开判定阈值（键鼠无输入时长）
         /// </summary>
-#if DEBUG
-        //调试模式下缩短阈值便于调试
-        private readonly TimeSpan leaveThreshold = new TimeSpan(0, 0, 15);
-#else
         private readonly TimeSpan leaveThreshold = new TimeSpan(0, 3, 0);
-#endif
         /// <summary>
         /// 指示用户是否处于离开状态
         /// </summary>
@@ -159,11 +154,8 @@ namespace ProjectEye.Core.Service
             date_timer.Tick += new EventHandler(date_timer_Tick);
             /****调试模式代码****/
 #if DEBUG
-            //30秒提示休息
-            work_timer.Interval = new TimeSpan(0, 0, 30);
-            //每5秒检测一次键鼠空闲
+            //每5秒检测一次键鼠空闲（仅提高检测频率，判定阈值仍为3分钟）
             idle_timer.Interval = new TimeSpan(0, 0, 5);
-            useeye_timer.Interval = new TimeSpan(0, 1, 0);
 #endif
 
             CreateTipWindows();
@@ -198,6 +190,26 @@ namespace ProjectEye.Core.Service
         private void Config_Changed(object sender, EventArgs e)
         {
             var oldOptions = sender as OptionsModel;
+            if (oldOptions.General.LeaveListener != config.options.General.LeaveListener)
+            {
+                //离开监听开关更改，即时生效
+                if (config.options.General.LeaveListener)
+                {
+                    idle_timer.Start();
+                }
+                else
+                {
+                    idle_timer.Stop();
+                    if (isUserAway)
+                    {
+                        //正处于离开状态时关闭监听，恢复计时
+                        isUserAway = false;
+                        FlushLeaveTime();
+                        DoStart(false);
+                    }
+                }
+                Debug.WriteLine("离开监听开关更改：" + config.options.General.LeaveListener);
+            }
             if (oldOptions.Style.IsThruTipWindow != config.options.Style.IsThruTipWindow)
             {
                 //鼠标穿透被打开
@@ -500,8 +512,11 @@ namespace ProjectEye.Core.Service
                 work_timer.Start();
                 workTimerStopwatch.Restart();
             }
-            //空闲检测
-            idle_timer.Start();
+            //空闲检测（受离开监听开关控制）
+            if (config.options.General.LeaveListener)
+            {
+                idle_timer.Start();
+            }
             //数据统计
             if (config.options.General.Data)
             {
